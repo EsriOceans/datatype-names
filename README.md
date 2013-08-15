@@ -7,9 +7,15 @@ and at 10.1SP1, this was changed to keyword names, such as 'GPFeatureLayer'. Thi
 version of ArcGIS being used, and converts between the names so one standard can be used, but still
 support unpatched 10.1 users.
 
-    import datatype
-    dt = datatype.DataType()
-    
-    # depending on the release of ArcGIS detected, this
-    result = dt.format('Feature Layer')
-    # will return 'Feature Layer' for 10.1, and 'GPFeatureLayer' for 10.1SP1 or 10.2
+```python
+import datatype
+dt = datatype.DataType()
+
+# depending on the release of ArcGIS detected, this
+# will return 'Feature Layer' for 10.1, and 'GPFeatureLayer' for 10.1SP1 or 10.2    
+result = dt.format('Feature Layer')
+
+# can also do conversions directly:
+dt.keyword_to_label('Feature Layer')
+# returns 'GPFeatureLayer'
+```
