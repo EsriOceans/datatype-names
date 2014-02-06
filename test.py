@@ -28,8 +28,8 @@ class TestDataTypes(unittest.TestCase):
         # now, test for 10.1 without the service pack where names aren't 
         # associated by keyword
         self.dt.service_pack = 'N/A'
+        self.dt.version = '10.1'
         self.assertTrue(self.dt.service_pack == 'N/A')
+        self.assertTrue(self.dt.version == '10.1')
         self.assertTrue('Feature Class' == self.dt.format('Feature Class'))
         self.assertTrue('Feature Class' == self.dt.format('DEFeatureClass'))
-
-
