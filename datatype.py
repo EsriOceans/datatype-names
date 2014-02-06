@@ -31,6 +31,16 @@ class DataType(object):
         """ Get installation service pack number (e.g. 1, N/A)."""
         return arcpy.GetInstallInfo()['SPNumber']
 
+    def supports_keywords(self):
+        # Versions prior to 10.1SP1 need labels not keywords. 10.0
+        # doesn't have Python toolboxes, so this isn't really needed
+        # for versions prior to 10.1.
+        if self.version == '10.0' or \
+            (self.version == '10.1' and self.service_pack == 'N/A'):
+                return False    
+        else:
+            return True
+
     def format(self, raw_type):
         """ Determine the appropriate naming convention based on release, 
         normalize the input datatype as needed."""
@@ -41,20 +51,11 @@ class DataType(object):
             type_of = 'label'
         elif raw_type in self.keywords:
             type_of = 'keyword'
-
         # only continue if we have a recognized type
         if type_of is not None:
-            # Versions prior to 10.1SP1 need labels not keywords. 10.0
-            # doesn't have Python toolboxes, so this isn't really needed
-            # for versions prior to 10.1
-
-            if self.version == '10.0' or \
-                    (self.version == '10.1' and self.service_pack == 'N/A'):
-                if type_of == 'keyword':
-                    normalized = self.keyword_to_label(raw_type)
-
-            if (self.version == '10.1' and self.service_pack == '1') or \
-                    self.version == '10.2':
+            if not self.supports_keywords() and type_of == 'keyword':
+                normalized = self.keyword_to_label(raw_type)
+            if self.supports_keywords():
                 # keywords are the default type in 10.1SP1+
                 if type_of == 'label':
                     normalized = self.label_to_keyword(raw_type)
