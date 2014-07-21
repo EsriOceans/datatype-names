@@ -11,6 +11,11 @@ class TestDataTypes(unittest.TestCase):
     def testVersionMatches(self):
         self.assertTrue(arcpy.GetInstallInfo()['Version'] == self.dt.version)
 
+    def testAlterVersion(self):
+        alt_dt = datatype.DataType()
+        alt_dt.version = '10.0'
+        self.assertTrue(alt_dt.version, '10.0')
+
     def testForKeyword(self):
         self.assertTrue('GPString' in self.dt.keywords)
 
