@@ -7,31 +7,47 @@ class DataType(object):
     Names were originally used in 10.1, but don't work for localized 
 	environments, which was resolved by switching to keywords in 10.1SP1. 
 	Detect our version, and do the correct one based on the version.
-    """ 
-    version = None
-    services_pack = None
-    types = None
-    labels = None
-    keywords = None
-    descriptions = None
-
+    """
     def __init__(self):
-        self.version = self.get_version()
-        self.service_pack = self.get_sp()
-        self.types = self.get_types()
-        self.labels = self.get_labels()
-        self.keywords = self.get_keywords()
-        self.descriptions = self.get_descriptions()
+        self._service_pack = arcpy.GetInstallInfo()['SPNumber']
+        self._version = arcpy.GetInstallInfo()['Version']
 
-    def get_version(self):
+    @property
+    def version(self):
         """ Get installation major release verson (e.g. 10.0, 10.1)."""
-        return arcpy.GetInstallInfo()['Version']
+        return self._version
 
-    def get_sp(self):
+    @version.setter
+    def version(self, value):
+        """ Allow overriding the version number for testing."""
+        self._version = value
+
+    @property
+    def service_pack(self):
         """ Get installation service pack number (e.g. 1, N/A)."""
-        return arcpy.GetInstallInfo()['SPNumber']
+        return self._service_pack
 
-    def supports_keywords(self):
+    @service_pack.setter
+    def service_pack(self, value):
+        """ Allow overriding the service pack number for testing."""
+        self._service_pack = value
+
+    @property
+    def labels(self):
+        """ get all labels (old datatype strings)."""
+        return self.types.keys()
+
+    @property
+    def keywords(self):
+        """ get all keywords (locale-independent types)."""
+        return [v['keyword'] for v in self.types.values()]
+
+    @property
+    def descriptions(self):
+        """ get all descriptions of our types."""
+        return [v['description'] for v in self.types.values()]
+ 
+    def _supports_keywords(self):
         # Versions prior to 10.1SP1 need labels not keywords. 10.0
         # doesn't have Python toolboxes, so this isn't really needed
         # for versions prior to 10.1.
@@ -53,9 +69,9 @@ class DataType(object):
             type_of = 'keyword'
         # only continue if we have a recognized type
         if type_of is not None:
-            if not self.supports_keywords() and type_of == 'keyword':
+            if not self._supports_keywords() and type_of == 'keyword':
                 normalized = self.keyword_to_label(raw_type)
-            if self.supports_keywords():
+            if self._supports_keywords():
                 # keywords are the default type in 10.1SP1+
                 if type_of == 'label':
                     normalized = self.label_to_keyword(raw_type)
@@ -68,7 +84,7 @@ class DataType(object):
     def keyword_to_label(self, keyword=None):
         """ convert a keyword to a label (old datatype strings)."""
         label = None 
-        for (k, label_info) in self.get_types().items():
+        for (k, label_info) in self.types.items():
             if label_info['keyword'] == keyword:
                 label = k
         return label
@@ -78,19 +94,8 @@ class DataType(object):
         # convert label to keyword
         return self.types[label]['keyword']
                
-    def get_labels(self):
-        """ get all labels (old datatype strings)."""
-        return self.get_types().keys()
-
-    def get_keywords(self):
-        """ get all keywords (locale-independent types)."""
-        return [v['keyword'] for v in self.get_types().values()]
-
-    def get_descriptions(self):
-        """ get all descriptions of our types."""
-        return [v['description'] for v in self.get_types().values()]
- 
-    def get_types(self):
+    @property
+    def types(self):
         """ A dictionary of all types, pulled from the 10.1 documentation.
 http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000035000000
         """
